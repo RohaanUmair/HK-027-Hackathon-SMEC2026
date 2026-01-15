@@ -1,1 +1,9 @@
 node_modules
+firebase-service-account.json
+reusex-*-firebase-adminsdk-*.json
+# Firebase / GCP secrets
+
+*.json
+# Environment files
+.env
+.env.local

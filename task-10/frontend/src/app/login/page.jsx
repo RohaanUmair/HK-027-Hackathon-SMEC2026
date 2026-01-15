@@ -1,25 +1,69 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import AuthLayout from "@/components/auth/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Lock, Chrome, Github } from "lucide-react";
+import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword, GoogleAuthProvider, GithubAuthProvider, signInWithPopup } from "firebase/auth";
 
 export default function LoginPage() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const router = useRouter();
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            router.push("/");
+        } catch (err) {
+            setError(err.message);
+        }
+        setLoading(false);
+    };
+
+    const handleGoogleLogin = async () => {
+        try {
+            await signInWithPopup(auth, new GoogleAuthProvider());
+            router.push("/");
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const handleGithubLogin = async () => {
+        try {
+            await signInWithPopup(auth, new GithubAuthProvider());
+            router.push("/");
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
     return (
         <AuthLayout
             title="Welcome back"
             description="Enter your credentials to access your account"
         >
-            <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-5" onSubmit={handleLogin}>
+                {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
                 <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
                     <Input
                         type="email"
                         placeholder="Email address"
                         className="pl-12"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                     />
                 </div>
@@ -31,6 +75,8 @@ export default function LoginPage() {
                             type="password"
                             placeholder="Password"
                             className="pl-12"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             required
                         />
                     </div>
@@ -41,8 +87,8 @@ export default function LoginPage() {
                     </div>
                 </div>
 
-                <Button className="w-full h-12 text-base font-semibold" size="lg">
-                    Sign In
+                <Button className="w-full h-12 text-base font-semibold" size="lg" disabled={loading}>
+                    {loading ? "Signing In..." : "Sign In"}
                 </Button>
 
                 <div className="relative my-8">
@@ -55,11 +101,11 @@ export default function LoginPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                    <Button variant="outline" className="h-12">
+                    <Button type="button" variant="outline" className="h-12" onClick={handleGoogleLogin}>
                         <Chrome className="w-5 h-5 mr-2" />
                         Google
                     </Button>
-                    <Button variant="outline" className="h-12">
+                    <Button type="button" variant="outline" className="h-12" onClick={handleGithubLogin}>
                         <Github className="w-5 h-5 mr-2" />
                         GitHub
                     </Button>
